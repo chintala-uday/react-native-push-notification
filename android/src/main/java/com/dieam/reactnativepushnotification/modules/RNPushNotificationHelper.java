@@ -38,6 +38,7 @@ import com.facebook.react.bridge.WritableMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,6 +81,7 @@ public class RNPushNotificationHelper {
     }
 
     public void invokeApp(Bundle bundle) {
+        Log.i(LOG_TAG, "checking invoke app  in helper" + bundle);
         String packageName = context.getPackageName();
         Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(packageName);
         String className = launchIntent.getComponent().getClassName();
@@ -186,6 +188,7 @@ public class RNPushNotificationHelper {
 
 
     public void sendToNotificationCentre(final Bundle bundle) {
+        Log.i(LOG_TAG, " sendToNotificationCentre." + bundle);
       RNPushNotificationPicturesAggregator aggregator = new RNPushNotificationPicturesAggregator(new RNPushNotificationPicturesAggregator.Callback() {
         public void call(Bitmap largeIconImage, Bitmap bigPictureImage, Bitmap bigLargeIconImage) {
           sendToNotificationCentreWithPicture(bundle, largeIconImage, bigPictureImage, bigLargeIconImage);
@@ -198,6 +201,7 @@ public class RNPushNotificationHelper {
     }
 
     public void sendToNotificationCentreWithPicture(Bundle bundle, Bitmap largeIconBitmap, Bitmap bigPictureBitmap, Bitmap bigLargeIconBitmap) {
+        Log.i(LOG_TAG, "checking bundle in hpler." + bundle);
         try {
             Class intentClass = getMainActivityClass();
             if (intentClass == null) {
@@ -411,11 +415,30 @@ public class RNPushNotificationHelper {
 
             notification.setStyle(style);
 
-            Intent intent = new Intent(context, intentClass);
-            intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            bundle.putBoolean("foreground", this.isApplicationInForeground());
-            bundle.putBoolean("userInteraction", true);
-            intent.putExtra("notification", bundle);
+
+                Intent intent = new Intent(context, intentClass);
+//                String stringData = bundle.getString("data");
+//            Log.i(LOG_TAG, "helper quote_id" + stringData);
+//            try {
+//                JSONObject JsonData = new JSONObject(stringData);
+//                bundle.putString("quote_id", JsonData.getString("quote_id"));
+//            } catch (JSONException e){
+//                Log.e(LOG_TAG, "error");
+//            }
+
+                String system_id = bundle.getString("subText1");
+                String vin = bundle.getString("vin");
+                String dialogue_detail = bundle.getString("dialogue_detail");
+                intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                bundle.putBoolean("foreground", this.isApplicationInForeground());
+                Log.i(LOG_TAG, "helper" + bundle);
+                bundle.putBoolean("userInteraction", true);
+
+                bundle.putString("system_id", system_id);
+                bundle.putString("vin", vin);
+                bundle.putString("dialogue_detail", dialogue_detail);
+                intent.putExtra("notification", bundle);
+
 
             // Add message_id to intent so react-native-firebase/messaging can identify it
             String messageId = bundle.getString("messageId");
@@ -457,7 +480,7 @@ public class RNPushNotificationHelper {
 
             PendingIntent pendingIntent = PendingIntent.getActivity(context, notificationID, intent,
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
-
+            Log.i(LOG_TAG, "oending intent" + bundle);
             NotificationManager notificationManager = notificationManager();
 
             long[] vibratePattern = new long[]{0};

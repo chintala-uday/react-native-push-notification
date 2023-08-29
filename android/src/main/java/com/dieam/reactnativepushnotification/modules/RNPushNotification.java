@@ -83,12 +83,22 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
     private Bundle getBundleFromIntent(Intent intent) {
         Bundle bundle = null;
         if (intent.hasExtra("notification")) {
+//            Log.i(LOG_TAG, "getBundleFromIntent inside if" + intent.getSerializableExtra("notification"));
+            Bundle bundleTest = intent.getBundleExtra("notification");
+            if (bundleTest != null) {
+                for (String key : bundleTest.keySet()) {
+                    Log.e(LOG_TAG, key + " : " + (bundleTest.get(key) != null ? bundleTest.get(key) : "NULL"));
+                }
+            }
             bundle = intent.getBundleExtra("notification");
         } else if (intent.hasExtra("google.message_id")) {
+            Log.i(LOG_TAG, "getBundleFromIntent inside else if");
             bundle = new Bundle();
 
             bundle.putBundle("data", intent.getExtras());
         }
+        Log.i(LOG_TAG, "getBundleFromIntent" + intent + bundle);
+
 
         if (bundle == null) {
             for (RNIntentHandler handler : IntentHandlers) {
@@ -97,7 +107,9 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         }
 
         if(null != bundle && !bundle.getBoolean("foreground", false) && !bundle.containsKey("userInteraction")) {
-          bundle.putBoolean("userInteraction", true);
+          Log.i(LOG_TAG, "pushnotion.java");
+            bundle.putBoolean("userInteraction", true);
+            Log.i(LOG_TAG, "getBundleFromIntent outside for loop" + bundle);
         }
 
         return bundle;
@@ -108,8 +120,9 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         for (RNIntentHandler handler : IntentHandlers) {
             handler.onNewIntent(intent);
         }
-        
         Bundle bundle = this.getBundleFromIntent(intent);
+
+        Log.i(LOG_TAG, "new intent" + bundle + intent);
         if (bundle != null) {
             mJsDelivery.notifyNotification(bundle);
         }

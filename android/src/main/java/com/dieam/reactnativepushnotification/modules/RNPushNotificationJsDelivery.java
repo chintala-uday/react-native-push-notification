@@ -2,6 +2,7 @@ package com.dieam.reactnativepushnotification.modules;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
@@ -12,6 +13,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Set;
+
+import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
 
 /**
  * Created by lambert on 2016/10/09.
@@ -25,6 +28,7 @@ public class RNPushNotificationJsDelivery {
     }
 
     void sendEvent(String eventName, Object params) {
+        Log.i(LOG_TAG, "checking send event");
         if (mReactContext.hasActiveCatalystInstance()) {
             mReactContext
                     .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
@@ -40,6 +44,7 @@ public class RNPushNotificationJsDelivery {
     }
 
     void notifyNotification(Bundle bundle) {
+        Log.i(LOG_TAG, "checking notify notiftion" + bundle);
         String bundleString = convertJSON(bundle);
 
         WritableMap params = Arguments.createMap();
@@ -49,6 +54,7 @@ public class RNPushNotificationJsDelivery {
     }
 
     void notifyNotificationAction(Bundle bundle) {
+        Log.i(LOG_TAG, "checking notification action" + bundle);
         String bundleString = convertJSON(bundle);
 
         WritableMap params = Arguments.createMap();

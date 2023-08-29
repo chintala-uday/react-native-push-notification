@@ -22,8 +22,10 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 
 import org.json.JSONObject;
+import org.json.JSONException;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.security.SecureRandom;
 
@@ -38,23 +40,38 @@ public class RNReceivedMessageHandler {
     }
 
     public void handleReceivedMessage(RemoteMessage message) {
+        Log.i(LOG_TAG, "message delivered" + message.getData());
         String from = message.getFrom();
         RemoteMessage.Notification remoteNotification = message.getNotification();
+        Log.v(LOG_TAG, "onMessageReceived: remoteNotification " + remoteNotification);
         final Bundle bundle = new Bundle();
         // Putting it from remoteNotification first so it can be overriden if message
         // data has it
         if (remoteNotification != null) {
             // ^ It's null when message is from GCM
             RNPushNotificationConfig config = new RNPushNotificationConfig(mFirebaseMessagingService.getApplication());  
-
-            String title = getLocalizedString(remoteNotification.getTitle(), remoteNotification.getTitleLocalizationKey(), remoteNotification.getTitleLocalizationArgs());
-            String body = getLocalizedString(remoteNotification.getBody(), remoteNotification.getBodyLocalizationKey(), remoteNotification.getBodyLocalizationArgs());
-
-            bundle.putString("title", title);
-            bundle.putString("message", body);
-            bundle.putString("sound", remoteNotification.getSound());
-            bundle.putString("color", remoteNotification.getColor());
-            bundle.putString("tag", remoteNotification.getTag());
+//try {
+//    String title = message.getData().get("title").toString();
+//    String body = message.getData().get("message");
+//    Log.i(LOG_TAG, "string values" + body);
+//            String title = getLocalizedString(remoteNotification.getTitle(), remoteNotification.getTitleLocalizationKey(), remoteNotification.getTitleLocalizationArgs());
+//            String body = getLocalizedString(remoteNotification.getBody(), remoteNotification.getBodyLocalizationKey(), remoteNotification.getBodyLocalizationArgs());
+    // a repair estaimate has been received
+//    JSONObject json = new JSONObject(body);
+//            bundle.putString("title", title);
+//            bundle.putString("data", body);
+//    String body = message.getData().get("message");
+//            bundle.putString("message", body);
+//            bundle.putString("subtitle", "subtitle");
+////            bundle.putString("system_id", json.getString("system_id"));
+////            bundle.putString("vin", json.getString("vin"));
+////            bundle.putString("dialogue_detail", json.getString("dialogue_detail"));
+//            bundle.putString("sound", remoteNotification.getSound());
+//            bundle.putString("color", remoteNotification.getColor());
+//            bundle.putString("tag", remoteNotification.getTag());
+//            } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
             
             if(remoteNotification.getIcon() != null) {
               bundle.putString("smallIcon", remoteNotification.getIcon());
@@ -117,15 +134,28 @@ public class RNReceivedMessageHandler {
             }
         }
 
+        String title = message.getData().get("title");
+        bundle.putString("title", title);
+
+        String body = message.getData().get("message");
+        try {
+            JSONObject json = new JSONObject(body);
+            bundle.putString("message", json.getString("dialogue"));
+            bundle.putString("subText", json.getString("dialogue_detail"));
+            bundle.putString("subText1", json.getString("dialogue_detail"));
+        } catch (JSONException e){
+            Log.e(LOG_TAG, String.valueOf(e));
+        }
+
         Bundle dataBundle = new Bundle();
-        Map<String, String> notificationData = message.getData();
-        
+        Map<String, String> notificationData = message.getData() ;
         for(Map.Entry<String, String> entry : notificationData.entrySet()) {
             dataBundle.putString(entry.getKey(), entry.getValue());
         }
 
         bundle.putParcelable("data", dataBundle);
-
+        JSONObject jsonTemp = new JSONObject(notificationData);
+        bundle.putString("tmp",jsonTemp.toString());
         Log.v(LOG_TAG, "onMessageReceived: " + bundle);
 
         // We need to run this on the main thread, as the React code assumes that is true.
@@ -160,6 +190,7 @@ public class RNReceivedMessageHandler {
     private void handleRemotePushNotification(ReactApplicationContext context, Bundle bundle) {
 
         // If notification ID is not provided by the user for push notification, generate one at random
+        Log.i(LOG_TAG, "checking handleremotepushnotification" + bundle);
         if (bundle.getString("id") == null) {
             SecureRandom randomNumberGenerator = new SecureRandom();
             bundle.putString("id", String.valueOf(randomNumberGenerator.nextInt()));
@@ -175,6 +206,7 @@ public class RNReceivedMessageHandler {
         RNPushNotificationJsDelivery jsDelivery = new RNPushNotificationJsDelivery(context);
         bundle.putBoolean("foreground", isForeground);
         bundle.putBoolean("userInteraction", false);
+        Log.i(LOG_TAG, "checking handle remote push notiication" + bundle);
         jsDelivery.notifyNotification(bundle);
 
         // If contentAvailable is set to true, then send out a remote fetch event
